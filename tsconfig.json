@@ -7,9 +7,11 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "es2022",
     "types": [],
+    "typeRoots": ["./types", "./node_modules/@types"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],

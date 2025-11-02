@@ -1,9 +1,23 @@
-import "dotenv/config";
+import { loadNetworkEnv } from "./env.js";
 import { gfClient } from "./gf.js";
+
+const networkArg = process.argv
+  .slice(2)
+  .find((arg: string) => arg.startsWith("--network="))
+  ?.split("=")[1];
+
+const activeNetwork = loadNetworkEnv(networkArg);
+
+if (networkArg && !activeNetwork) {
+  throw new Error(
+    `Unknown network "${networkArg}". Expected one of: testnet, mainnet.`
+  );
+}
 
 const { BTCPAY_URL, BTCPAY_API_KEY, STORE_ID } = process.env!;
 if (!BTCPAY_URL || !BTCPAY_API_KEY || !STORE_ID) {
-  throw new Error("Set BTCPAY_URL, BTCPAY_API_KEY, STORE_ID in .env");
+  const suffix = activeNetwork ? ` for ${activeNetwork}` : "";
+  throw new Error(`Set BTCPAY_URL, BTCPAY_API_KEY, STORE_ID${suffix} in your env file.`);
 }
 
 const gf = gfClient(BTCPAY_URL, BTCPAY_API_KEY);
