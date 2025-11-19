@@ -34,3 +34,16 @@ dependencies) in your Python environment if necessary:
 ```
 pip install matplotlib
 ```
+
+## Configuration
+
+`gf-sdk` is designed to talk to Dyson-operated BTCPayServer instances.
+
+Set these environment variables (e.g. in a `.env` file):
+
+```env
+GF_ENV=testnet                # or mainnet-staging, mainnet
+BTCPAY_URL=https://testnet-btcpay.dyson-labs.com
+BTCPAY_API_KEY=your-greenfield-api-key
+STORE_ID=your-store-id
+
