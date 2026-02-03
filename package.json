@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx src/create-invoice.ts",
+    "dev": "tsx simulation/portal_healthcheck.ts",
+    "portal:health": "tsx simulation/portal_healthcheck.ts",
+    "btcpay:create-invoice": "tsx simulation/create-invoice.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/create-invoice.js"
   },

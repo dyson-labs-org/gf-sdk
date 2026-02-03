@@ -1,23 +1,45 @@
 # gf-sdk
 
-Utilities for working with the Dyson Labs BTCPay servers.
+External SDK for interacting with the SCRAP Portal. BTCPay-direct tooling is internal-only.
 
-## Environment setup
+## External: PortalClient
 
+Use `PortalClient` to query portal health:
 
+```ts
+import { PortalClient } from "gf-sdk";
 
-## Creating invoices
+const client = new PortalClient({
+  baseUrl: "http://127.0.0.1:18083"
+});
 
-The TypeScript invoice generator now expects usage details from the satellite
-simulation (or any other client). Provide the billed amount, total data
-transferred, and elapsed time via CLI flags:
+const health = await client.getHealth();
+```
+
+Defaults:
+- `baseUrl`: `process.env.GF_PORTAL_BASE_URL` or `http://127.0.0.1:18083`
+- `timeoutMs`: 15000
+
+Run the local healthcheck:
 
 ```
-npx tsx src/create-invoice.ts --amount=12.50 --megabytes=625 --seconds=180 --session=sat-sim-demo
+npm run portal:health
 ```
 
-Environment variables `BTCPAY_URL`, `BTCPAY_API_KEY`, and `STORE_ID` must be set
-before running the script.
+## Internal: BTCPay simulation scripts only
+
+These scripts are for internal tooling and must not be used by external integrators.
+
+Create a simulation invoice:
+
+```
+npm run btcpay:create-invoice -- --amount=12.50 --megabytes=625 --seconds=180 --session=sat-sim-demo
+```
+
+Environment variables required:
+- `BTCPAY_URL`
+- `BTCPAY_API_KEY`
+- `STORE_ID`
 
 ## Satellite simulation
 
