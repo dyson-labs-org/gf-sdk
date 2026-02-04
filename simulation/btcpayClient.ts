@@ -1,9 +1,2 @@
-import axios from "axios";
-
-export function btcpayClient(baseUrl: string, apiKey: string) {
-  return axios.create({
-    baseURL: `${baseUrl.replace(/\/+$/, "")}/api/v1`,
-    headers: { Authorization: `token ${apiKey}`, "Content-Type": "application/json" },
-    timeout: 15000
-  });
-}
+console.error("Moved to packages/gf-tools/src/btcpayClient.ts.");
+process.exit(1);

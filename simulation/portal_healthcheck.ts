@@ -1,13 +1,2 @@
-import "dotenv/config";
-import { PortalClient } from "../src/index.js";
-
-async function main() {
-  const client = new PortalClient();
-  const health = await client.getHealth();
-  console.log(JSON.stringify(health, null, 2));
-}
-
-main().catch((error) => {
-  console.error("Portal healthcheck failed:", error?.message ?? error);
-  process.exit(1);
-});
+console.error("Moved to packages/gf-sdk/scripts/portal_healthcheck.ts. Run: pnpm -C packages/gf-sdk portal:health");
+process.exit(1);

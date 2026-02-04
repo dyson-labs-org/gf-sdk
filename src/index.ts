@@ -1,2 +1,2 @@
-export { PortalClient } from "./portalClient.js";
-export type { PortalHealth } from "./portalClient.js";
+console.error("Moved to packages/gf-sdk/src/index.ts.");
+process.exit(1);
