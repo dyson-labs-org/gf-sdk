@@ -1,58 +1,30 @@
-# gf-sdk
+# gf-sdk Monorepo
 
-External SDK for interacting with the SCRAP Portal. BTCPay-direct tooling is internal-only.
+This repo is split into two packages:
 
-## External: PortalClient
+- `packages/gf-sdk` — public SCRAP Portal SDK for integrators (PortalClient only)
+- `packages/gf-tools` — internal tooling and simulation helpers (BTCPay-direct, dev scripts)
 
-Use `PortalClient` to query portal health:
-
-```ts
-import { PortalClient } from "gf-sdk";
-
-const client = new PortalClient({
-  baseUrl: "http://127.0.0.1:18083"
-});
-
-const health = await client.getHealth();
-```
-
-Defaults:
-- `baseUrl`: `process.env.GF_PORTAL_BASE_URL` or `http://127.0.0.1:18083`
-- `timeoutMs`: 15000
-
-Run the local healthcheck:
+## Workspace commands
 
 ```
-npm run portal:health
+pnpm install
+pnpm build
+pnpm test
+pnpm lint
 ```
 
-## Internal: BTCPay simulation scripts only
-
-These scripts are for internal tooling and must not be used by external integrators.
-
-Create a simulation invoice:
+## Package commands
 
 ```
-npm run btcpay:create-invoice -- --amount=12.50 --megabytes=625 --seconds=180 --session=sat-sim-demo
+pnpm -C packages/gf-sdk build
+pnpm -C packages/gf-sdk portal:health
+pnpm -C packages/gf-sdk smoke
+
+pnpm -C packages/gf-tools btcpay:create-invoice
 ```
 
-Environment variables required:
-- `BTCPAY_URL`
-- `BTCPAY_API_KEY`
-- `STORE_ID`
+## Migration note
 
-## Satellite simulation
-
-Run the interactive simulation to model the datalink between two satellites and
-automatically create an invoice when you stop the session:
-
-```
-python simulation/satellite_simulation.py
-```
-
-The visualiser uses Matplotlib. Install it (and any other required
-dependencies) in your Python environment if necessary:
-
-```
-pip install matplotlib
-```
+If you previously used BTCPay-direct helpers from `gf-sdk`, they have moved to `packages/gf-tools`.
+The public SDK now targets the SCRAP Portal only.
