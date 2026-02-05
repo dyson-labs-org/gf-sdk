@@ -37,6 +37,11 @@ export type PortalActionResult = {
 const DEFAULT_PORTAL_BASE_URL = "http://127.0.0.1:18083";
 const DEFAULT_TIMEOUT_MS = 15000;
 
+function readEnv(key: string): string | undefined {
+  if (typeof process === "undefined") return undefined;
+  return process.env?.[key];
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.replace(/\/+$/, "");
 }
@@ -59,7 +64,7 @@ export class PortalClient {
   private timeoutMs: number;
 
   constructor(opts?: { baseUrl?: string; timeoutMs?: number }) {
-    const baseUrl = opts?.baseUrl ?? process.env.GF_PORTAL_BASE_URL ?? DEFAULT_PORTAL_BASE_URL;
+    const baseUrl = opts?.baseUrl ?? readEnv("GF_PORTAL_BASE_URL") ?? DEFAULT_PORTAL_BASE_URL;
     this.baseUrl = normalizeBaseUrl(baseUrl);
     this.timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   }

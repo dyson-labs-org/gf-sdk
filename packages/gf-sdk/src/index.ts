@@ -6,3 +6,4 @@ export type {
   PortalSessionStart,
   PortalSessionStartResponse
 } from "./portalClient.js";
+export * from "./scrap/index.js";

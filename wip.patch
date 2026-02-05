@@ -1,0 +1,427 @@
+diff --git a/README.md b/README.md
+index a4ae134..52f7863 100644
+--- a/README.md
++++ b/README.md
+@@ -1,30 +1,27 @@
+-# gf-sdk Monorepo
++# gf-sdk monorepo
+ 
+-This repo is split into two packages:
++This repo contains:
+ 
+-- `packages/gf-sdk` ù public SCRAP Portal SDK for integrators (PortalClient only)
+-- `packages/gf-tools` ù internal tooling and simulation helpers (BTCPay-direct, dev scripts)
++- `packages/gf-sdk` for the public SCRAP Portal SDK.
++- `packages/gf-tools` for internal tooling and simulations.
+ 
+-## Workspace commands
++Start here:
+ 
+-```
++- `packages/gf-sdk/README.md`
++
++## Maintainers
++
++```bash
+ pnpm install
+ pnpm build
+ pnpm test
+ pnpm lint
+ ```
+ 
+-## Package commands
++## Integration test
+ 
++```bash
++pnpm test:integration
+ ```
+-pnpm -C packages/gf-sdk build
+-pnpm -C packages/gf-sdk portal:health
+-pnpm -C packages/gf-sdk smoke
+-
+-pnpm -C packages/gf-tools btcpay:create-invoice
+-```
+-
+-## Migration note
+ 
+-If you previously used BTCPay-direct helpers from `gf-sdk`, they have moved to `packages/gf-tools`.
+-The public SDK now targets the SCRAP Portal only.
++The integration test expects a live portal and admin token. See `packages/gf-sdk/docs/testing/README.md` for the required environment and expected outputs.
+diff --git a/package.json b/package.json
+index 2ba6a16..4422539 100644
+--- a/package.json
++++ b/package.json
+@@ -6,7 +6,8 @@
+   ],
+   "scripts": {
+     "build": "pnpm -r build",
+-    "test": "pnpm -r test",
++    "test:integration": "npx -y tsx@latest --test tests/integration/phase4_execution.test.ts",
++    "test": "pnpm -r test && pnpm test:integration",
+     "lint": "pnpm -r lint"
+   }
+ }
+diff --git a/packages/gf-sdk/README.md b/packages/gf-sdk/README.md
+index 3632d5f..2806293 100644
+--- a/packages/gf-sdk/README.md
++++ b/packages/gf-sdk/README.md
+@@ -1,59 +1,173 @@
+ # gf-sdk
+ 
+-Public SCRAP Portal SDK for integrators. This package speaks to the SCRAP Portal only and does **not** expose any BTCPay-direct helpers.
++Public SDK for the SCRAP Portal. It lets you create sessions (invoices or invoice-like requests), wait for settlement, and invoke capabilities.
++
++This SDK is for integrators who need to call capabilities through the portal and providers who want to expose their own capabilities through an executor.
++
++## Scope
++
++This package speaks to the SCRAP Portal only. BTCPay-direct helpers live in `packages/gf-tools` and are internal-only.
++
++## 10-minute no-terminal quickstart
++
++1. Create a new Node.js project in CodeSandbox, StackBlitz, or Replit.
++2. Add the dependency `gf-sdk`.
++3. Replace `index.js` with the file below.
++4. Run.
++5. You should see the exact output shown after the snippet.
++
++```js
++(async () => {
++  const { executionHandle, scrapPortalClient } = await import("gf-sdk");
++
++  const state = {
++    sessionId: "sess_demo_001",
++    executionId: "exec_demo_001",
++    executorId: "EXECUTOR_DEMO",
++    action: "demo:hello"
++  };
++
++  const jsonResponse = (body, status = 200) =>
++    new Response(JSON.stringify(body), {
++      status,
++      headers: { "Content-Type": "application/json" }
++    });
++
++  const parseBody = (init) => {
++    if (!init || !init.body) return {};
++    try {
++      return JSON.parse(String(init.body));
++    } catch {
++      return {};
++    }
++  };
++
++  globalThis.fetch = async (input, init = {}) => {
++    const url = new URL(typeof input === "string" ? input : input.url);
++    const path = url.pathname;
++
++    if (path === "/portal/session/start") {
++      return jsonResponse({ session_id: state.sessionId });
++    }
++
++    if (path === `/portal/session/${state.sessionId}/ready`) {
++      return jsonResponse({
++        session_id: state.sessionId,
++        ready: true,
++        settlement_ok: true,
++        settlement_state: "settled"
++      });
++    }
++
++    if (path === `/portal/v1/session/${state.sessionId}/actions/request`) {
++      const body = parseBody(init);
++      state.executorId = body.executor_id ?? state.executorId;
++      state.action = body.action ?? state.action;
++      return jsonResponse({ execution_id: state.executionId, status: "QUEUED" });
++    }
++
++    if (path === `/portal/v1/session/${state.sessionId}/actions/${state.executionId}/run`) {
++      return jsonResponse({
++        execution_id: state.executionId,
++        status: "DELIVERED_TO_EXECUTOR",
++        delivered: true
++      });
++    }
++
++    if (path === `/portal/v1/session/${state.sessionId}/actions/${state.executionId}`) {
++      return jsonResponse({
++        session_id: state.sessionId,
++        execution_id: state.executionId,
++        executor_id: state.executorId,
++        action: state.action,
++        status: "DELIVERED_TO_EXECUTOR",
++        token: { kind: "demo", value: "tok_demo_001" },
++        executor_result: { reply: { reply: { ok: true } } }
++      });
++    }
++
++    return new Response("Not found", { status: 404 });
++  };
++
++  const client = scrapPortalClient({
++    baseUrl: "https://mock.portal",
++    adminToken: "demo_admin_token"
++  });
++
++  const session = await client.sessionStart({ session_kind: "scrap_native", units: 1 });
++  console.log("session_id:", session.session_id);
++
++  const ready = await client.sessionReady(session.session_id);
++  console.log("ready:", ready.ready, "settlement_ok:", ready.settlement_ok);
++
++  const request = await client.actionRequest(session.session_id, {
++    action: "demo:hello",
++    executor_id: "EXECUTOR_DEMO",
++    params: { name: "world" }
++  });
++  console.log("execution_id:", request.execution_id);
++
++  await client.actionRun(session.session_id, request.execution_id);
++
++  const receipt = await executionHandle(client, session.session_id, request.execution_id).waitFor({
++    until: "DELIVERED"
++  });
++
++  console.log("delivery_status:", receipt.status);
++  console.log("token_kind:", receipt.token?.kind ?? "none");
++  console.log("executor_ok:", receipt.executor_result?.reply?.reply?.ok ?? "unknown");
++})();
++```
++
++Expected output:
+ 
+-## Integration model
++```text
++session_id: sess_demo_001
++ready: true settlement_ok: true
++execution_id: exec_demo_001
++delivery_status: DELIVERED_TO_EXECUTOR
++token_kind: demo
++executor_ok: true
++```
+ 
+-Integrators should use the Portal API for session lifecycle:
+-- start session (invoice creation)
+-- poll session readiness
+-- optional action execution once settled
++This quickstart uses a mock portal to simulate payment and delivery. When you have a real portal, remove the mock `fetch` block and set `baseUrl` to your portal URL.
+ 
+-BTCPay-direct helpers are internal and live in `packages/gf-tools` only.
++## Minimal invoice -> capability call (real portal)
+ 
+-## Usage
++Use the legacy portal endpoints for a real invoice and a demo capability call. This requires an admin token.
+ 
+ ```ts
+ import { PortalClient } from "gf-sdk";
+ 
+-const client = new PortalClient({
+-  baseUrl: "https://btcpay.dyson-labs.com"
+-});
++const client = new PortalClient({ baseUrl: "https://your-portal.example" });
+ 
+ const session = await client.startSession({
+   amount: "0.00001",
+   currency: "BTC",
+-  memo: "example"
++  memo: "demo invoice"
+ });
+ 
+ const ready = await client.getSessionReady(session.session_id);
++if (ready.ready) {
++  const result = await client.executeAction(session.session_id, "sys:whoami", "<ADMIN_TOKEN>");
++  console.log(result);
++}
+ ```
+ 
+-### Staging base URL (path prefix)
++## Where to go next
+ 
+-```ts
+-const client = new PortalClient({
+-  baseUrl: "https://btcpay.dyson-labs.com/portal-staging"
+-});
+-```
++Read the full docs index at `docs/README.md`.
+ 
+-## CLI helpers
++Learn how routing works at `docs/source-routing/README.md`.
+ 
+-Portal healthcheck:
++Expose your own capability in `docs/provider-guide/README.md`.
+ 
+-```
+-pnpm -C packages/gf-sdk portal:health
+-```
++Validate your integration in `docs/testing/README.md`.
+ 
+-Portal smoke test:
++Need help? Open an issue in this repo with your portal base URL, session id, and the exact error message.
+ 
+-```
+-GF_PORTAL_BASE_URL=https://btcpay.dyson-labs.com/portal-staging \
+-GF_AMOUNT=0.00001 \
+-GF_CURRENCY=BTC \
+-GF_MEMO="gf-sdk smoke test" \
+-GF_TIMEOUT_S=180 \
+-pnpm -C packages/gf-sdk smoke
+-```
++## CHANGELOG
+ 
+-Note: the session will not become ready until the invoice is paid via the `checkout_url`.
++- Removed deprecated `create-invoice` and `gf` modules from the public SDK surface.
++- Made environment variable access safe in browser IDEs.
++- Removed noisy debug logging from SCRAP v1 client requests.
+diff --git a/packages/gf-sdk/src/create-invoice.ts b/packages/gf-sdk/src/create-invoice.ts
+deleted file mode 100644
+index d3f257e..0000000
+--- a/packages/gf-sdk/src/create-invoice.ts
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Deprecated: moved to packages/gf-tools/scripts/btcpay_create_invoice.ts (internal tooling only).
+-export {};
+diff --git a/packages/gf-sdk/src/gf.ts b/packages/gf-sdk/src/gf.ts
+deleted file mode 100644
+index c6cacce..0000000
+--- a/packages/gf-sdk/src/gf.ts
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Deprecated: moved to packages/gf-tools/src/btcpayClient.ts (internal tooling only).
+-export {};
+diff --git a/packages/gf-sdk/src/index.ts b/packages/gf-sdk/src/index.ts
+index d1fad85..5c30419 100644
+--- a/packages/gf-sdk/src/index.ts
++++ b/packages/gf-sdk/src/index.ts
+@@ -6,3 +6,4 @@ export type {
+   PortalSessionStart,
+   PortalSessionStartResponse
+ } from "./portalClient.js";
++export * from "./scrap/index.js";
+diff --git a/packages/gf-sdk/src/portalClient.ts b/packages/gf-sdk/src/portalClient.ts
+index 183d4a4..cb2cbbc 100644
+--- a/packages/gf-sdk/src/portalClient.ts
++++ b/packages/gf-sdk/src/portalClient.ts
+@@ -37,6 +37,11 @@ export type PortalActionResult = {
+ const DEFAULT_PORTAL_BASE_URL = "http://127.0.0.1:18083";
+ const DEFAULT_TIMEOUT_MS = 15000;
+ 
++function readEnv(key: string): string | undefined {
++  if (typeof process === "undefined") return undefined;
++  return process.env?.[key];
++}
++
+ function normalizeBaseUrl(baseUrl: string) {
+   return baseUrl.replace(/\/+$/, "");
+ }
+@@ -59,7 +64,7 @@ export class PortalClient {
+   private timeoutMs: number;
+ 
+   constructor(opts?: { baseUrl?: string; timeoutMs?: number }) {
+-    const baseUrl = opts?.baseUrl ?? process.env.GF_PORTAL_BASE_URL ?? DEFAULT_PORTAL_BASE_URL;
++    const baseUrl = opts?.baseUrl ?? readEnv("GF_PORTAL_BASE_URL") ?? DEFAULT_PORTAL_BASE_URL;
+     this.baseUrl = normalizeBaseUrl(baseUrl);
+     this.timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+   }
+diff --git a/packages/gf-sdk/src/scrap/client.ts b/packages/gf-sdk/src/scrap/client.ts
+index 241fee4..0629c06 100644
+--- a/packages/gf-sdk/src/scrap/client.ts
++++ b/packages/gf-sdk/src/scrap/client.ts
+@@ -56,6 +56,11 @@ export interface ScrapPortalClient {
+ const DEFAULT_BASE_URL = "http://127.0.0.1:18084";
+ const DEFAULT_TIMEOUT_MS = 15000;
+ 
++function readEnv(key: string): string | undefined {
++  if (typeof process === "undefined") return undefined;
++  return process.env?.[key];
++}
++
+ function normalizeBaseUrl(baseUrl: string) {
+   return baseUrl.replace(/\/+$/, "");
+ }
+@@ -74,9 +79,8 @@ async function readErrorBody(response: Response) {
+ }
+ 
+ export function scrapPortalClient(options?: ScrapPortalClientOptions): ScrapPortalClient {
+-  const baseUrl = normalizeBaseUrl(options?.baseUrl ?? process.env.PORTAL_BASE_URL ?? DEFAULT_BASE_URL);
+-  const adminToken =
+-    options?.adminToken ?? process.env.PORTAL_ADMIN_TOKEN ?? process.env.GF_PORTAL_ADMIN_TOKEN ?? undefined;
++  const baseUrl = normalizeBaseUrl(options?.baseUrl ?? readEnv("PORTAL_BASE_URL") ?? DEFAULT_BASE_URL);
++  const adminToken = options?.adminToken ?? readEnv("PORTAL_ADMIN_TOKEN") ?? readEnv("GF_PORTAL_ADMIN_TOKEN");
+   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+ 
+   async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+@@ -91,40 +95,25 @@ export function scrapPortalClient(options?: ScrapPortalClientOptions): ScrapPort
+       headers.set("Content-Type", "application/json");
+     }
+     if (adminToken) {
+-  headers.set("X-Admin-Token", adminToken);
+-  headers.set("X-Portal-Admin-Token", adminToken); // optional backward-compat
++      headers.set("X-Admin-Token", adminToken);
++      headers.set("X-Portal-Admin-Token", adminToken); // optional backward-compat
+     }
+-    if (adminToken) {
+-  // print only length so we don't leak secrets
+-  console.log("[sdk] adminTokenLen=", adminToken.length);
+-}
+-  console.log("[sdk] headers include X-Admin-Token=", headers.get("X-Admin-Token") ? "yes" : "no");
+-  
+-  try {
+-    const url = joinUrl(baseUrl, path);
+-    const method = (init?.method ?? "GET").toUpperCase();
+ 
+-    console.log("[sdk] request:", method, url);
+-    console.log("[sdk] header keys:", Array.from(headers.keys()).join(", "));
+-
+-    const response = await fetch(url, {
+-      ...init,
+-      headers,
+-      signal: controller.signal
+-    });
++    try {
++      const url = joinUrl(baseUrl, path);
++      const response = await fetch(url, {
++        ...init,
++        headers,
++        signal: controller.signal
++      });
+ 
+       if (!response.ok) {
+         const body = await readErrorBody(response);
+-        const www = response.headers.get("www-authenticate");
+-        const via = response.headers.get("via");
+-
+-        console.log("[sdk] non-OK:", response.status, response.statusText, "www-authenticate=", www, "via=", via);
+-
+         const message = body
+           ? `${response.status} ${response.statusText}: ${body}`
+           : `${response.status} ${response.statusText}`;
+         throw new Error(`Portal request failed: ${message}`);
+-        }
++      }
+ 
+       return (await response.json()) as T;
+     } finally {
+@@ -197,8 +186,8 @@ export function scrapPortalClient(options?: ScrapPortalClientOptions): ScrapPort
+     }
+ 
+     return requestJson<ExecutionReceipt>(
+-  `/portal/v1/session/${encodeURIComponent(sessionId)}/actions/${encodeURIComponent(executionId)}`
+-  );
++      `/portal/v1/session/${encodeURIComponent(sessionId)}/actions/${encodeURIComponent(executionId)}`
++    );
+   }
+ 
+   return {
+diff --git a/packages/gf-sdk/tsconfig.json b/packages/gf-sdk/tsconfig.json
+index a2ba345..cf9e1b1 100644
+--- a/packages/gf-sdk/tsconfig.json
++++ b/packages/gf-sdk/tsconfig.json
+@@ -5,7 +5,6 @@
+     "outDir": "dist"
+   },
+   "include": [
+-    "src/index.ts",
+-    "src/portalClient.ts"
++    "src/**/*.ts"
+   ]
+ }

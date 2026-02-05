@@ -56,6 +56,11 @@ export interface ScrapPortalClient {
 const DEFAULT_BASE_URL = "http://127.0.0.1:18084";
 const DEFAULT_TIMEOUT_MS = 15000;
 
+function readEnv(key: string): string | undefined {
+  if (typeof process === "undefined") return undefined;
+  return process.env?.[key];
+}
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.replace(/\/+$/, "");
 }
@@ -74,9 +79,8 @@ async function readErrorBody(response: Response) {
 }
 
 export function scrapPortalClient(options?: ScrapPortalClientOptions): ScrapPortalClient {
-  const baseUrl = normalizeBaseUrl(options?.baseUrl ?? process.env.PORTAL_BASE_URL ?? DEFAULT_BASE_URL);
-  const adminToken =
-    options?.adminToken ?? process.env.PORTAL_ADMIN_TOKEN ?? process.env.GF_PORTAL_ADMIN_TOKEN ?? undefined;
+  const baseUrl = normalizeBaseUrl(options?.baseUrl ?? readEnv("PORTAL_BASE_URL") ?? DEFAULT_BASE_URL);
+  const adminToken = options?.adminToken ?? readEnv("PORTAL_ADMIN_TOKEN") ?? readEnv("GF_PORTAL_ADMIN_TOKEN");
   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
   async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -91,40 +95,25 @@ export function scrapPortalClient(options?: ScrapPortalClientOptions): ScrapPort
       headers.set("Content-Type", "application/json");
     }
     if (adminToken) {
-  headers.set("X-Admin-Token", adminToken);
-  headers.set("X-Portal-Admin-Token", adminToken); // optional backward-compat
+      headers.set("X-Admin-Token", adminToken);
+      headers.set("X-Portal-Admin-Token", adminToken); // optional backward-compat
     }
-    if (adminToken) {
-  // print only length so we don't leak secrets
-  console.log("[sdk] adminTokenLen=", adminToken.length);
-}
-  console.log("[sdk] headers include X-Admin-Token=", headers.get("X-Admin-Token") ? "yes" : "no");
-  
-  try {
-    const url = joinUrl(baseUrl, path);
-    const method = (init?.method ?? "GET").toUpperCase();
 
-    console.log("[sdk] request:", method, url);
-    console.log("[sdk] header keys:", Array.from(headers.keys()).join(", "));
-
-    const response = await fetch(url, {
-      ...init,
-      headers,
-      signal: controller.signal
-    });
+    try {
+      const url = joinUrl(baseUrl, path);
+      const response = await fetch(url, {
+        ...init,
+        headers,
+        signal: controller.signal
+      });
 
       if (!response.ok) {
         const body = await readErrorBody(response);
-        const www = response.headers.get("www-authenticate");
-        const via = response.headers.get("via");
-
-        console.log("[sdk] non-OK:", response.status, response.statusText, "www-authenticate=", www, "via=", via);
-
         const message = body
           ? `${response.status} ${response.statusText}: ${body}`
           : `${response.status} ${response.statusText}`;
         throw new Error(`Portal request failed: ${message}`);
-        }
+      }
 
       return (await response.json()) as T;
     } finally {
@@ -197,8 +186,8 @@ export function scrapPortalClient(options?: ScrapPortalClientOptions): ScrapPort
     }
 
     return requestJson<ExecutionReceipt>(
-  `/portal/v1/session/${encodeURIComponent(sessionId)}/actions/${encodeURIComponent(executionId)}`
-  );
+      `/portal/v1/session/${encodeURIComponent(sessionId)}/actions/${encodeURIComponent(executionId)}`
+    );
   }
 
   return {
