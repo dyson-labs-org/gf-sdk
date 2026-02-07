@@ -1,3 +1,10 @@
+## What this looks like in practice
+
+![BTCPay invoice created via gf-sdk](packages/gf-sdk/docs/assets/Screenshot 2026-02-06 232050.png)
+
+**Example BTCPay invoice created via `gf-sdk`.**  
+USD-denominated invoice created programmatically, with settlement verified by the SCRAP portal.
+
 # gf-sdk Monorepo
 
 Quick start: see examples/create-invoice/example.ts to generate your first invoice (no admin token required).
@@ -19,8 +26,8 @@ GF_PORTAL_V1_PREFIX=/v1
 
 This repo is split into two packages:
 
-- `packages/gf-sdk` — public SCRAP Portal SDK for integrators (PortalClient only)
-- `packages/gf-tools` — internal tooling and simulation helpers (BTCPay-direct, dev scripts)
+- `packages/gf-sdk` ï¿½ public SCRAP Portal SDK for integrators (PortalClient only)
+- `packages/gf-tools` ï¿½ internal tooling and simulation helpers (BTCPay-direct, dev scripts)
 
 ## Workspace commands
 
