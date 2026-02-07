@@ -5,6 +5,16 @@
 **Example BTCPay invoice created via `gf-sdk`.**  
 USD-denominated invoice created programmatically, with settlement verified by the SCRAP portal.
 
+## Documentation
+
+Most user-facing documentation for the SDK lives under:
+
+- [SDK Documentation](packages/gf-sdk/docs)
+
+Key guides:
+- [Treasury & Conversion Guide](packages/gf-sdk/docs/Treasury%20%26%20Conversion%20Guide.md)
+
+
 # gf-sdk Monorepo
 
 Quick start: see examples/create-invoice/example.ts to generate your first invoice (no admin token required).
