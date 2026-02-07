@@ -10,7 +10,7 @@ This document explains how institutions typically convert SCRAP settlement recei
 
 ## Mental model
 
-1. SCRAP settles in a **digital asset** (e.g. BTC or stablecoin)
+1. SCRAP settles in a **digital asset**
 2. Execution occurs after cryptographic settlement finality
 3. The customer converts or holds proceeds according to their internal treasury policy
 
