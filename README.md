@@ -55,7 +55,7 @@ pnpm -C packages/gf-sdk build
 pnpm -C packages/gf-sdk portal:health
 pnpm -C packages/gf-sdk smoke
 
-pnpm -C packages/gf-tools btcpay:create-invoice
+pnpm -C examples/create-invoice start
 ```
 
 ## Migration note
