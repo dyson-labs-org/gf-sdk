@@ -12,7 +12,7 @@ Most user-facing documentation for the SDK lives under:
 - [SDK Documentation](packages/gf-sdk/docs)
 
 Key guides:
-- [Treasury & Conversion Guide](packages/gf-sdk/docs/Treasury%20%26%20Conversion%20Guide.md)
+- [Treasury & Conversion Guide](packages/gf-sdk/docs/treasury-conversion-guide/README.md)
 
 
 # gf-sdk Monorepo
