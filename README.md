@@ -1,6 +1,6 @@
 ## What this looks like in practice
 
-![BTCPay invoice created via gf-sdk](packages/gf-sdk/docs/assets/Screenshot 2026-02-06 232050.png)
+![BTCPay invoice created via gf-sdk](packages/gf-sdk/docs/assets/invoice-usd-example.png)
 
 **Example BTCPay invoice created via `gf-sdk`.**  
 USD-denominated invoice created programmatically, with settlement verified by the SCRAP portal.
