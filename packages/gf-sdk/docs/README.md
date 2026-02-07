@@ -10,6 +10,9 @@
 
 - A browser IDE (CodeSandbox, StackBlitz, or Replit).
 - A SCRAP Portal base URL if you want to run against a real portal.
+- Production uses baseUrl `https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
+- The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+- `/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
 
 ## Start here
 

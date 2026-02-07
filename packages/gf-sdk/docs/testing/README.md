@@ -9,6 +9,11 @@
 ## Prerequisites
 
 - A SCRAP Portal base URL for real tests.
+- The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+- Integration tests require `GF_PORTAL_BASE_URL` set to production.
+- Production uses baseUrl `https://btcpay.dyson-labs.com` with apiPrefix `/portal` (`GF_PORTAL_API_PREFIX`).
+- V1 endpoints are deployment-specific; set `GF_PORTAL_V1_PREFIX` to a relative value (usually `/v1`, not `/portal/v1`).
+- `/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
 - An admin token if you plan to call `actionRun` or legacy `executeAction`.
 
 ## Known-good example outputs
@@ -18,11 +23,13 @@ Portal health:
 ```json
 {
   "status": "ok",
-  "service": "portal",
+  "service": "scrap-portal",
   "time": "2026-02-04T12:00:00Z",
-  "env": "staging"
+  "env": "prod"
 }
 ```
+
+Health is served at `GET {baseUrl}/health` (root, no `apiPrefix`).
 
 Session start (SCRAP v1):
 

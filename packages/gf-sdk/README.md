@@ -8,6 +8,60 @@ This SDK is for integrators who need to call capabilities through the portal and
 
 This package speaks to the SCRAP Portal only. BTCPay-direct helpers live in `packages/gf-tools` and are internal-only.
 
+## Create an invoice (no admin token required)
+
+See `../../examples/create-invoice/` for a runnable invoice-creation example.
+
+```ts
+import { PortalClient } from "gf-sdk";
+
+const DEFAULT_BASE_URL = "https://btcpay.dyson-labs.com"; // PRODUCTION (default)
+// const DEFAULT_BASE_URL = "<staging base URL>"; // STAGING (TBD)
+const DEFAULT_API_PREFIX = "/portal";
+
+const baseUrl = process.env.GF_PORTAL_BASE_URL ?? DEFAULT_BASE_URL;
+const apiPrefix = process.env.GF_PORTAL_API_PREFIX ?? DEFAULT_API_PREFIX;
+
+const client = new PortalClient({ baseUrl, apiPrefix });
+
+const session = await client.startSession({
+  amount: "0.00001",
+  currency: "BTC",
+  memo: "gf-sdk invoice example"
+});
+
+console.log("session_id:", session.session_id);
+console.log("checkout_url:", session.checkout_url ?? "");
+```
+
+`baseUrl` is the portal origin (customer-facing), for example `https://btcpay.dyson-labs.com`.
+`apiPrefix` is the portal API prefix; production uses `/portal`.
+The SDK always talks to the portal API root, never `/webhook`.
+The portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+It is not a BTCPay webhook URL.
+BTCPay webhooks and Greenfield APIs are internal-only.
+
+No admin token is required for invoice creation. No BTCPay credentials are required.
+`/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
+
+Known-good env (production):
+
+```bash
+export GF_PORTAL_BASE_URL="https://btcpay.dyson-labs.com"
+export GF_PORTAL_API_PREFIX="/portal"
+export GF_PORTAL_V1_PREFIX="/v1"
+```
+
+```powershell
+$env:GF_PORTAL_BASE_URL="https://btcpay.dyson-labs.com"
+$env:GF_PORTAL_API_PREFIX="/portal"
+$env:GF_PORTAL_V1_PREFIX="/v1"
+```
+
+`GF_PORTAL_API_PREFIX` should be `/portal`.
+`GF_PORTAL_V1_PREFIX` should be `/v1` (NOT `/portal/v1`).
+`PORTAL_ADMIN_TOKEN` is only required for admin-only endpoints (`actionRun`, legacy `executeAction`).
+
 ## 10-minute no-terminal quickstart
 
 1. Create a new Node.js project in CodeSandbox, StackBlitz, or Replit.
@@ -90,8 +144,7 @@ This package speaks to the SCRAP Portal only. BTCPay-direct helpers live in `pac
   };
 
   const client = scrapPortalClient({
-    baseUrl: "https://mock.portal",
-    adminToken: "demo_admin_token"
+    baseUrl: "https://mock.portal"
   });
 
   const session = await client.sessionStart({ session_kind: "scrap_native", units: 1 });
@@ -106,8 +159,6 @@ This package speaks to the SCRAP Portal only. BTCPay-direct helpers live in `pac
     params: { name: "world" }
   });
   console.log("execution_id:", request.execution_id);
-
-  await client.actionRun(session.session_id, request.execution_id);
 
   const receipt = await executionHandle(client, session.session_id, request.execution_id).waitFor({
     until: "DELIVERED"
@@ -132,9 +183,27 @@ executor_ok: true
 
 This quickstart uses a mock portal to simulate payment and delivery. When you have a real portal, remove the mock `fetch` block and set `baseUrl` to your portal URL.
 
-## Minimal invoice -> capability call (real portal)
+## Admin-only: demo dispatch and legacy endpoints
 
-Use the legacy portal endpoints for a real invoice and a demo capability call. This requires an admin token.
+Admin tokens are operator secrets. They must never be embedded in client-side apps.
+Admin tokens are NOT required for invoice creation.
+
+Use admin tokens only for operator-only demo dispatch or legacy endpoints.
+
+Demo dispatch (SCRAP v1):
+
+```ts
+import { scrapPortalClient } from "gf-sdk";
+
+const client = scrapPortalClient({
+  baseUrl: "https://your-portal.example",
+  adminToken: "<ADMIN_TOKEN>"
+});
+
+await client.actionRun("<SESSION_ID>", "<EXECUTION_ID>");
+```
+
+Legacy executeAction:
 
 ```ts
 import { PortalClient } from "gf-sdk";

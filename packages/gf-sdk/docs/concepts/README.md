@@ -33,9 +33,14 @@ Two client entry points exist in this SDK:
 
 ## Defaults
 
-`PortalClient` defaults to `http://127.0.0.1:18083` or `GF_PORTAL_BASE_URL`.
+`PortalClient` defaults to `https://btcpay.dyson-labs.com` or `GF_PORTAL_BASE_URL`, with `GF_PORTAL_API_PREFIX` defaulting to `/portal`.
 
-`scrapPortalClient` defaults to `http://127.0.0.1:18084` or `PORTAL_BASE_URL`.
+`scrapPortalClient` defaults to `https://btcpay.dyson-labs.com` or `GF_PORTAL_BASE_URL`/`PORTAL_BASE_URL`, with `GF_PORTAL_API_PREFIX` defaulting to `/portal`.
+V1 endpoints are deployment-specific; set `GF_PORTAL_V1_PREFIX` if your portal exposes them.
+`GF_PORTAL_V1_PREFIX` is appended to `GF_PORTAL_API_PREFIX` and must be relative (do not include `/portal`).
+
+The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+`/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
 
 Admin tokens can be provided directly or via `PORTAL_ADMIN_TOKEN` or `GF_PORTAL_ADMIN_TOKEN`.
 

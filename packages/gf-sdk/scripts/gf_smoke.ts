@@ -1,6 +1,7 @@
 import { PortalClient } from "../src/index.js";
 
 const DEFAULT_BASE_URL = "https://btcpay.dyson-labs.com";
+const DEFAULT_API_PREFIX = "/portal";
 const DEFAULT_AMOUNT = "0.00001";
 const DEFAULT_CURRENCY = "BTC";
 const DEFAULT_MEMO = "gf-sdk smoke test";
@@ -115,15 +116,17 @@ async function runAction(
 
 async function main() {
   const baseUrl = process.env.GF_PORTAL_BASE_URL ?? DEFAULT_BASE_URL;
+  const apiPrefix = process.env.GF_PORTAL_API_PREFIX ?? DEFAULT_API_PREFIX;
   const adminToken = process.env.GF_PORTAL_ADMIN_TOKEN?.trim();
   const amount = process.env.GF_AMOUNT ?? DEFAULT_AMOUNT;
   const currency = process.env.GF_CURRENCY ?? DEFAULT_CURRENCY;
   const memo = process.env.GF_MEMO ?? DEFAULT_MEMO;
   const timeoutS = parseTimeoutSeconds(process.env.GF_TIMEOUT_S);
 
-  const client = new PortalClient({ baseUrl });
+  const client = new PortalClient({ baseUrl, apiPrefix });
 
   console.log(`portal_base_url: ${baseUrl}`);
+  console.log(`portal_api_prefix: ${apiPrefix}`);
   console.log(`admin_token: ${adminToken ? "set" : "unset"}`);
   console.log(`amount: ${amount} ${currency}`);
   console.log(`memo: ${memo}`);

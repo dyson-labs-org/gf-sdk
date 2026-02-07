@@ -8,6 +8,15 @@ importers:
 
   .: {}
 
+  examples/create-invoice:
+    dependencies:
+      gf-sdk:
+        specifier: workspace:*
+        version: link:../../packages/gf-sdk
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+
   packages/gf-sdk:
     dependencies:
       dotenv:

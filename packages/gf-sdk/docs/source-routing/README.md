@@ -11,6 +11,10 @@
 - A SCRAP Portal base URL.
 - An executor id you are allowed to target.
 
+Note: SCRAP v1 endpoints are deployment-specific and may not be exposed on production. Do not assume `/portal/v1`.
+Set `GF_PORTAL_API_PREFIX` (usually `/portal`) and `GF_PORTAL_V1_PREFIX` (usually `/v1`) to match your portal deployment.
+`GF_PORTAL_V1_PREFIX` is appended to `GF_PORTAL_API_PREFIX` and must be relative (do not include `/portal`).
+
 ## What is routed
 
 The portal routes capability invocations and their executions. Sessions are the payment or request container that enables those executions.

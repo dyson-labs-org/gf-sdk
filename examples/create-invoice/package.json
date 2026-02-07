@@ -1,0 +1,12 @@
+{
+  "name": "create-invoice-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx example.ts"
+  },
+  "dependencies": {
+    "gf-sdk": "workspace:*",
+    "tsx": "^4.0.0"
+  }
+}

@@ -18,7 +18,8 @@ Error: `Portal request failed: 401 Unauthorized`.
 Fix: Use a valid admin token only for admin endpoints.
 
 Error: `Portal request failed: 404 Not Found`.
-Fix: Verify the base URL and the `/portal` or `/portal/v1` path.
+Fix: Verify `baseUrl` is the origin (`https://btcpay.dyson-labs.com`) and `apiPrefix` is `/portal`.
+Note: `/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
 
 Error: `Timed out waiting for execution`.
 Fix: Confirm your executor is reachable and that you dispatched with `actionRun` if required.

@@ -1,5 +1,22 @@
 # gf-sdk Monorepo
 
+Quick start: see examples/create-invoice/example.ts to generate your first invoice (no admin token required).
+
+The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+Production uses baseUrl `https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
+Integration tests require `GF_PORTAL_BASE_URL` and will skip unless it is set.
+`/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
+
+Known-good env (production):
+
+```text
+GF_PORTAL_BASE_URL=https://btcpay.dyson-labs.com
+GF_PORTAL_API_PREFIX=/portal
+GF_PORTAL_V1_PREFIX=/v1
+```
+
+`PORTAL_ADMIN_TOKEN` is only required for admin-only dispatch and legacy exec.
+
 This repo is split into two packages:
 
 - `packages/gf-sdk` — public SCRAP Portal SDK for integrators (PortalClient only)

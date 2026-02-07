@@ -6,8 +6,9 @@
   ],
   "scripts": {
     "build": "pnpm -r build",
+    "test:unit": "npx -y tsx@latest --test tests/unit/**/*.test.ts",
     "test:integration": "npx -y tsx@latest --test tests/integration/phase4_execution.test.ts",
-    "test": "pnpm -r test && pnpm test:integration",
+    "test": "pnpm -r test && pnpm test:unit && pnpm test:integration",
     "lint": "pnpm -r lint"
   }
 }

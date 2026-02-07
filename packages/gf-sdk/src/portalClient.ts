@@ -17,8 +17,28 @@ export type PortalSessionStartResponse = {
   session_id: string;
   invoice_id: string;
   checkout_url?: string;
+
+  // New portal shape
+  invoice?: {
+    amount?: string;
+    currency?: string;
+    expected_total_sats?: number;
+  };
+
+  // Backward/other shapes we’ve seen in the portal during iteration
+  pricing?: {
+    total_sats?: number;
+    quoted_subtotal_sats?: number;
+    platform_fee_bps?: number;
+    platform_fee_sats?: number;
+    currency?: string;
+  };
+
+  expectedTotalSats?: number;
+
   [k: string]: unknown;
 };
+
 
 export type PortalSessionReady = {
   session_id: string;
@@ -34,7 +54,8 @@ export type PortalActionResult = {
   [k: string]: unknown;
 };
 
-const DEFAULT_PORTAL_BASE_URL = "http://127.0.0.1:18083";
+const DEFAULT_PORTAL_BASE_URL = "https://btcpay.dyson-labs.com";
+const DEFAULT_API_PREFIX = "/portal";
 const DEFAULT_TIMEOUT_MS = 15000;
 
 function readEnv(key: string): string | undefined {
@@ -46,8 +67,25 @@ function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.replace(/\/+$/, "");
 }
 
-function joinUrl(baseUrl: string, path: string) {
-  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+function normalizeApiPrefix(apiPrefix: string | undefined) {
+  const trimmed = (apiPrefix ?? "").trim();
+  if (!trimmed) return "";
+  const normalized = trimmed.replace(/^\/+|\/+$/g, "");
+  return normalized ? `/${normalized}` : "";
+}
+
+function joinUrl(baseUrl: string, ...parts: Array<string | undefined>) {
+  const base = baseUrl.replace(/\/+$/, "");
+  const cleaned = parts
+    .filter((part): part is string => Boolean(part && part.length > 0))
+    .map((part) => part.replace(/^\/+|\/+$/g, ""))
+    .filter((part) => part.length > 0);
+
+  if (cleaned.length === 0) {
+    return base;
+  }
+
+  return `${base}/${cleaned.join("/")}`;
 }
 
 async function readErrorBody(response: Response) {
@@ -59,21 +97,32 @@ async function readErrorBody(response: Response) {
   }
 }
 
+function adminTokenRequiredMessage(methodName: string) {
+  return `Admin token is required for ${methodName}. This method is admin-only. Invoice creation does not require an admin token.`;
+}
+
 export class PortalClient {
   private baseUrl: string;
+  private apiPrefix: string;
   private timeoutMs: number;
 
-  constructor(opts?: { baseUrl?: string; timeoutMs?: number }) {
+  constructor(opts?: { baseUrl?: string; apiPrefix?: string; timeoutMs?: number }) {
     const baseUrl = opts?.baseUrl ?? readEnv("GF_PORTAL_BASE_URL") ?? DEFAULT_PORTAL_BASE_URL;
+    const apiPrefix = opts?.apiPrefix ?? readEnv("GF_PORTAL_API_PREFIX") ?? DEFAULT_API_PREFIX;
     this.baseUrl = normalizeBaseUrl(baseUrl);
+    this.apiPrefix = normalizeApiPrefix(apiPrefix);
     this.timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   }
 
-  private buildUrl(path: string) {
+  private buildApiUrl(path: string) {
+    return joinUrl(this.baseUrl, this.apiPrefix, path);
+  }
+
+  private buildRootUrl(path: string) {
     return joinUrl(this.baseUrl, path);
   }
 
-  private async requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  private async requestJson<T>(url: string, init?: RequestInit): Promise<T> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
     const headers = new Headers(init?.headers);
@@ -83,7 +132,7 @@ export class PortalClient {
     }
 
     try {
-      const response = await fetch(this.buildUrl(path), {
+      const response = await fetch(url, {
         ...init,
         signal: controller.signal,
         headers
@@ -102,7 +151,14 @@ export class PortalClient {
   }
 
   async getHealth(): Promise<PortalHealth> {
-    return this.requestJson<PortalHealth>("/portal/health");
+    try {
+      return await this.requestJson<PortalHealth>(this.buildRootUrl("/health"));
+    } catch (error) {
+      if (!this.apiPrefix) {
+        throw error;
+      }
+      return this.requestJson<PortalHealth>(this.buildApiUrl("/health"));
+    }
   }
 
   async startSession(options: PortalSessionStart): Promise<PortalSessionStartResponse> {
@@ -127,7 +183,9 @@ export class PortalClient {
     if (memo) params.set("memo", memo);
     if (sessionId) params.set("session_id", sessionId);
 
-    return this.requestJson<PortalSessionStartResponse>(`/portal/session/start?${params.toString()}`, { method: "POST" });
+    return this.requestJson<PortalSessionStartResponse>(this.buildApiUrl(`/session/start?${params.toString()}`), {
+      method: "POST"
+    });
   }
 
   async getSessionReady(sessionId: string): Promise<PortalSessionReady> {
@@ -135,7 +193,9 @@ export class PortalClient {
       throw new Error("Portal session id is required.");
     }
 
-    return this.requestJson<PortalSessionReady>(`/portal/session/${encodeURIComponent(sessionId)}/ready`);
+    return this.requestJson<PortalSessionReady>(
+      this.buildApiUrl(`/session/${encodeURIComponent(sessionId)}/ready`)
+    );
   }
 
   async executeAction(sessionId: string, action: string, adminToken: string): Promise<PortalActionResult> {
@@ -146,14 +206,15 @@ export class PortalClient {
       throw new Error("Portal action is required.");
     }
     if (!adminToken) {
-      throw new Error("Portal admin token is required.");
+      throw new Error(adminTokenRequiredMessage("executeAction"));
     }
 
-    return this.requestJson<PortalActionResult>(`/portal/session/${encodeURIComponent(sessionId)}/exec`, {
+    return this.requestJson<PortalActionResult>(this.buildApiUrl(`/session/${encodeURIComponent(sessionId)}/exec`), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Admin-Token": adminToken
+        "X-Admin-Token": adminToken,
+        "X-Portal-Admin-Token": adminToken
       },
       body: JSON.stringify({ action })
     });

@@ -4,7 +4,7 @@
 
 - Create a session (invoice-like request).
 - Simulate settlement.
-- Request and dispatch a capability.
+- Request a capability.
 - Receive an execution receipt.
 
 ## Prerequisites
@@ -94,8 +94,7 @@
   };
 
   const client = scrapPortalClient({
-    baseUrl: "https://mock.portal",
-    adminToken: "demo_admin_token"
+    baseUrl: "https://mock.portal"
   });
 
   const session = await client.sessionStart({ session_kind: "scrap_native", units: 1 });
@@ -110,8 +109,6 @@
     params: { name: "world" }
   });
   console.log("execution_id:", request.execution_id);
-
-  await client.actionRun(session.session_id, request.execution_id);
 
   const receipt = await executionHandle(client, session.session_id, request.execution_id).waitFor({
     until: "DELIVERED"
@@ -137,8 +134,9 @@ executor_ok: true
 ## Swap in a real portal
 
 1. Remove the `globalThis.fetch` mock block.
-2. Set `baseUrl` to your SCRAP Portal URL.
-3. If your portal requires admin dispatch, set `adminToken` to your portal admin token.
+2. Set `baseUrl` to your SCRAP Portal origin (remote VPS only; local portal execution is not supported).
+   Production uses `baseUrl` `https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
+3. If your portal requires admin dispatch, run the admin-only `actionRun` call from a server-side environment with an operator admin token.
 4. Keep the rest of the flow the same.
 
 For Lightning invoices, use the `PortalClient` flow in `../../README.md`.
