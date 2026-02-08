@@ -1,0 +1,1 @@
+# 401 Unauthorized vs 402 Payment Required
