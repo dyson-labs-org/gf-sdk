@@ -1,3 +1,9 @@
+## BEFORE YOU START ##
+If you haven't yet reached out to Dyson Sphere Laboratories
+and gotten access to the SCRAP specification, you can do so
+by emailing calvin@dyson-labs.com or filling out the form here:
+https://www.dyson-labs.com/contact
+
 ## What this looks like in practice
 
 ![BTCPay invoice created via gf-sdk](packages/gf-sdk/docs/assets/invoice-usd-example.png)
