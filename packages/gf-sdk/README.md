@@ -37,7 +37,9 @@ console.log("checkout_url:", session.checkout_url ?? "");
 `baseUrl` is the portal origin (customer-facing), for example `https://btcpay.dyson-labs.com`.
 `apiPrefix` is the portal API prefix; production uses `/portal`.
 The SDK always talks to the portal API root, never `/webhook`.
-The portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+Current connected production uses the remote SCRAP Portal deployment. Future
+local/enclave Portal and offline bundle targets are documented in
+`docs/target-modes/README.md` and are not claimed as implemented here.
 It is not a BTCPay webhook URL.
 BTCPay webhooks and Greenfield APIs are internal-only.
 

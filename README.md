@@ -25,7 +25,10 @@ Key guides:
 
 Quick start: see examples/create-invoice/example.ts to generate your first invoice (no admin token required).
 
-The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+Current connected production uses the remote SCRAP Portal deployment. Future
+local/enclave Portal targets and offline bundle targets are documented in
+`packages/gf-sdk/docs/target-modes/README.md`; do not assume local Portal
+execution unless an operator supplies an explicit local or enclave endpoint.
 Production uses baseUrl `https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
 Integration tests require `GF_PORTAL_BASE_URL` and will skip unless it is set.
 `/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.

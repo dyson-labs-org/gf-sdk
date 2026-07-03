@@ -9,7 +9,8 @@
 ## Prerequisites
 
 - A SCRAP Portal base URL for real tests.
-- The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+- Current connected production uses the remote SCRAP Portal deployment; local,
+  enclave, and offline bundle targets are future-gated.
 - Integration tests require `GF_PORTAL_BASE_URL` set to production.
 - Production uses baseUrl `https://btcpay.dyson-labs.com` with apiPrefix `/portal` (`GF_PORTAL_API_PREFIX`).
 - V1 endpoints are deployment-specific; set `GF_PORTAL_V1_PREFIX` to a relative value (usually `/v1`, not `/portal/v1`).

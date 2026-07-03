@@ -134,7 +134,9 @@ executor_ok: true
 ## Swap in a real portal
 
 1. Remove the `globalThis.fetch` mock block.
-2. Set `baseUrl` to your SCRAP Portal origin (remote VPS only; local portal execution is not supported).
+2. Set `baseUrl` to your SCRAP Portal origin. Current connected production uses
+   the remote SCRAP Portal deployment; local/enclave Portal targets are
+   future-gated unless an operator supplies an explicit endpoint.
    Production uses `baseUrl` `https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
 3. If your portal requires admin dispatch, run the admin-only `actionRun` call from a server-side environment with an operator admin token.
 4. Keep the rest of the flow the same.
