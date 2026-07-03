@@ -39,7 +39,10 @@ Two client entry points exist in this SDK:
 V1 endpoints are deployment-specific; set `GF_PORTAL_V1_PREFIX` if your portal exposes them.
 `GF_PORTAL_V1_PREFIX` is appended to `GF_PORTAL_API_PREFIX` and must be relative (do not include `/portal`).
 
-The SCRAP Portal runs on a remote VPS only (170.75.173.239). Local portal execution is not supported.
+Current connected production uses the remote SCRAP Portal deployment. Future
+local/enclave Portal and offline bundle-generation targets are documented in
+`../target-modes/README.md`; they remain future-gated unless a deployment
+operator provides an explicit local or enclave endpoint.
 `/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
 
 Admin tokens can be provided directly or via `PORTAL_ADMIN_TOKEN` or `GF_PORTAL_ADMIN_TOKEN`.
@@ -48,6 +51,7 @@ Admin tokens can be provided directly or via `PORTAL_ADMIN_TOKEN` or `GF_PORTAL_
 
 - Run the no-terminal quickstart at `../quickstart-no-terminal/README.md`.
 - Read routing basics at `../source-routing/README.md`.
+- Review target modes at `../target-modes/README.md`.
 
 ## Back to Start Here
 
