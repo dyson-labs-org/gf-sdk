@@ -1,0 +1,51 @@
+# Reviewer roles are explicit and risk-triggered. Do not run a panel for routine work.
+personas:
+- name: "Implementation Reviewer"
+  short_name: implementation
+  trigger_paths:
+  - "src/**/*"
+  - "frontend/**/*"
+  - "backend/**/*"
+  - "scripts/**/*"
+  purpose:
+  - "Check that the change delivers the requested outcome with the smallest working implementation."
+  - "Check relevant tests, failure behavior, and unintended scope."
+  prompt_constraints:
+  - "Prefer deletion, reuse, and direct code over new machinery."
+  - "Report only actionable findings supported by the diff or executed validation."
+
+- name: "Domain and Interface Reviewer"
+  short_name: domain-interface
+  trigger_paths:
+  - "**/*contract*"
+  - "**/*schema*"
+  - "**/*api*"
+  - "docs/architecture/**/*"
+  purpose:
+  - "Check accepted domain invariants, ownership, interface compatibility, and migration impact."
+  prompt_constraints:
+  - "Do not require architecture pins or broad reconciliation when the relevant contract is unchanged."
+  - "Separate current source behavior from plans and donor evidence."
+
+- name: "External Consequence Reviewer"
+  short_name: external-consequence
+  trigger_paths:
+  - ".github/**/*"
+  - "**/*deploy*"
+  - "**/*migration*"
+  - "**/*payment*"
+  - "**/*wallet*"
+  - "**/*rf*"
+  purpose:
+  - "Review production deployment, real money, credentials, destructive migration, paid-provider action, RF transmission, spacecraft control, and material deletion."
+  prompt_constraints:
+  - "Confirm explicit authority, exact target, recovery path, and truthful evidence."
+  - "Do not classify offline, synthetic, default-off, or receive-only work as high-risk without a concrete external consequence."
+
+composite_panels:
+  high_risk_review:
+    description: "Use only when the change crosses the common contract's high-risk boundary."
+    personas:
+    - "Implementation Reviewer"
+    - "Domain and Interface Reviewer"
+    - "External Consequence Reviewer"
