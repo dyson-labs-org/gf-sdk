@@ -1,4 +1,13 @@
-## BEFORE YOU START ##
+# gf-sdk Historical Partner-SDK Donor
+
+> **Donor status:** This repository is not an Operational Marketplace V1
+> runtime or integration dependency. Its TypeScript client, examples, target
+> modes, and tests may be adapted in `space-marketplace`; canonical Portal
+> source belongs in `ops-btcpay-realnet`. Revalidate every endpoint and
+> contract before reuse. The examples below are historical and do not authorize
+> invoice creation or production access.
+
+## Before you start
 If you haven't yet reached out to Dyson Sphere Laboratories
 and gotten access to the SCRAP specification, you can do so
 by emailing calvin@dyson-labs.com or filling out the form here:
@@ -23,17 +32,20 @@ Key guides:
 
 # gf-sdk Monorepo
 
-Quick start: see examples/create-invoice/example.ts to generate your first invoice (no admin token required).
+Historical example: `examples/create-invoice/example.ts` demonstrates the
+legacy Portal client. Do not run it against a live endpoint without an
+explicitly authorized payment test.
 
-Current connected production uses the remote SCRAP Portal deployment. Future
+The historical connected integration targeted the remote SCRAP Portal. Future
 local/enclave Portal targets and offline bundle targets are documented in
 `packages/gf-sdk/docs/target-modes/README.md`; do not assume local Portal
 execution unless an operator supplies an explicit local or enclave endpoint.
-Production uses baseUrl `https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
+The recorded production example used baseUrl
+`https://btcpay.dyson-labs.com` with apiPrefix `/portal`.
 Integration tests require `GF_PORTAL_BASE_URL` and will skip unless it is set.
 `/portal-staging` is not currently exposed; staging is TBD unless explicitly provided.
 
-Known-good env (production):
+Historical environment example (revalidate before use):
 
 ```text
 GF_PORTAL_BASE_URL=https://btcpay.dyson-labs.com
