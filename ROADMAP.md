@@ -1,6 +1,6 @@
 # Roadmap Status
 
-Last reviewed: 2026-07-27
+Last reviewed: 2026-07-31
 
 Repository: `dyson-labs-org/gf-sdk`
 
@@ -13,5 +13,8 @@ Useful donor material: TypeScript Portal client patterns, target modes, examples
 There is no active Operational Marketplace V1 implementation roadmap in this
 repository. Current execution is tracked in
 [satellite-platform-architecture#69](https://github.com/dyson-labs-org/satellite-platform-architecture/issues/69).
+
+Open feedback issues remain historical/non-V1 partner conversations. They do
+not create an active SDK roadmap or block pre-alpha.
 
 Treat endpoint, invoice, credential, and production-connection claims as historical until revalidated. No package, dependency, endpoint, build, or publication change is authorized by this marker.
